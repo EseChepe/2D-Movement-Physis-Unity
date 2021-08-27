@@ -13,6 +13,7 @@ The 'Go through platforms' should have a Platform Effector 2D component, and the
 In the "GoThroughPlatform.cs" script you'll notice that I use the Input.GetButton("Down"); function on lines 19, 25 and 36. This is a button call that I configured myself and it would be complicated to explain, so instead change that code to Input.GetKey("down"); or Input.GetKey("s"); depending on how you like it more.
 
 My resources:
+
 https://www.youtube.com/watch?v=KCzEnKLaaPc
 
 https://www.youtube.com/watch?v=QGDeafTx5ug&t=302s
