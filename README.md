@@ -7,3 +7,5 @@ Create a new layer in your Unity project and call it "Ground" and then assign it
 
 Create 2 children objects from the Player object, it doesn't matter how you name them. Just now that one should be located at the bottom-center of the player and the other to the right.
 Attach those previous elements to Player > Player Movement (Script) > Ground Check Collider and Front Check and assign the Ground Layer to Ground. 
+
+The 'Go through platforms' should have a Platform Effector 2D component, and the Box Collider 2D component should have the "Used by Effector" checkbox checked.
