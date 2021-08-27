@@ -14,6 +14,9 @@ In the "GoThroughPlatform.cs" script you'll notice that I use the Input.GetButto
 
 My resources:
 https://www.youtube.com/watch?v=KCzEnKLaaPc
+
 https://www.youtube.com/watch?v=QGDeafTx5ug&t=302s
+
 https://www.youtube.com/watch?v=E_c539LwXuE&t=437s
+
 https://www.youtube.com/watch?v=M_kg7yjuhNg&t=244s
