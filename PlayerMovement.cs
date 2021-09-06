@@ -74,6 +74,12 @@ public class PlayerMovement : MonoBehaviour
         movementX = Input.GetAxisRaw("Horizontal");
 
         transform.position += new Vector3(movementX, 0f, 0f) * moveForce * Time.fixedDeltaTime;
+
+        if (myBody.velocity.x > 0 && movementX < 0) {
+            myBody.AddForce(new Vector2(-myBody.velocity.x, 0), ForceMode2D.Impulse);
+        } else if (myBody.velocity.x < 0 && movementX > 0) {
+            myBody.AddForce(new Vector2(-myBody.velocity.x, 0), ForceMode2D.Impulse);
+        }
     }
 
     //Flips the player whenever it moves left or right
