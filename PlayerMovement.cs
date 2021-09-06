@@ -80,6 +80,7 @@ public class PlayerMovement : MonoBehaviour
         } else if (myBody.velocity.x < 0 && movementX > 0) {
             myBody.AddForce(new Vector2(-myBody.velocity.x, 0), ForceMode2D.Impulse);
         }
+
     }
 
     //Flips the player whenever it moves left or right
@@ -110,16 +111,26 @@ public class PlayerMovement : MonoBehaviour
 
     //Makes the player jump
     void PlayerJump() {
-        if ((Input.GetButtonDown("Jump")) && isGrounded) {
-            isJumping = true;
-            jumpTimeCounter = jumpTime;
-            if (myBody.velocity.x > 0 || myBody.velocity.x == 0) {
-                myBody.AddForce(new Vector2((movementX * myBody.velocity.x) * -(-movementX), jumpForce), ForceMode2D.Impulse);
-            } else if (myBody.velocity.x < 0) {
-                myBody.AddForce(new Vector2(-(movementX * myBody.velocity.x) * -(movementX), jumpForce), ForceMode2D.Impulse);
-            } 
-            
+        while (myBody.velocity.x < 35 && myBody.velocity.x > -35) {
+            if ((Input.GetButtonDown("Jump")) && isGrounded) {
+                isJumping = true;
+                jumpTimeCounter = jumpTime;
+                Debug.Log(myBody.velocity.x);
+                
+                if (myBody.velocity.x > 0 || myBody.velocity.x == 0) {
+                    myBody.AddForce(new Vector2((movementX * myBody.velocity.x) * -(-movementX), 0), ForceMode2D.Impulse);
+                } else if (myBody.velocity.x < 0) {
+                    myBody.AddForce(new Vector2(-(movementX * myBody.velocity.x) * -(movementX), 0), ForceMode2D.Impulse);
+                } 
+                
+            }
         } 
+
+        if (myBody.velocity.x > 0 || myBody.velocity.x == 0) {
+                    myBody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+                } else if (myBody.velocity.x < 0) {
+                    myBody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+                } 
 
         if ((Input.GetButton("Jump")) && isGrounded == false) {
             isJumping = true;
