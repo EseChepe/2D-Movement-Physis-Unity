@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {   
+
+    public Bounce bounce;
     [SerializeField]
     private float moveForce = 10f;
 
@@ -12,34 +14,36 @@ public class PlayerMovement : MonoBehaviour
     private float jumpTimeCounter;
     public float jumpTime;
     private bool facingRight = true;
-    private bool isJumping;
+    [HideInInspector] public bool isJumping;
     const float groundCheckRadius = 0.37f;
 
     private float hDirection;
     private float yDirection;
 
-    private float movementX;
-    private Rigidbody2D myBody;
+    [HideInInspector] public float movementX;
+    [HideInInspector] public Rigidbody2D myBody;
     [SerializeField] LayerMask groundLayer;
     private SpriteRenderer sr;
-    [SerializeField] private bool isGrounded = false;
+    [SerializeField] public bool isGrounded = false;
     // private string GROUND_TAG = "Ground";
 
     bool isTouchingGround;
     public Transform groundCheckCollider;
     bool isTouchingFront;
     public Transform frontCheck;
+    [SerializeField] LayerMask GTPlatformLayer;
     bool wallSliding;
     public float wallSlidingSpeed;
     bool wallJumping;
     public float xWallForce;
     public float yWallForce;
     public float wallJumpTime;
+    bool isGoingThroughPlatform;
 
     [SerializeField] private float dashSpeed;
-    private float dashTime;
+    [HideInInspector] public float dashTime;
     [SerializeField] private float starDashTime;
-    private int direction;
+    public int direction;
     public bool canDash = true;
     bool dashIsVertical;
 
@@ -56,6 +60,7 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate() {
         PlayerMoveKeyboard();
         JumpDuration();
+        FlipAction();
     }
 
     // Update is called once per frame
@@ -64,7 +69,6 @@ public class PlayerMovement : MonoBehaviour
         Dash();
         GroundCheck();
         WallJump();
-        FlipAction();
         PlayerJump();
         ChangeColor();
     }
@@ -103,7 +107,8 @@ public class PlayerMovement : MonoBehaviour
     void GroundCheck() {
         isGrounded = false;
         isTouchingGround = Physics2D.OverlapCircle(groundCheckCollider.position, groundCheckRadius, groundLayer);
-        if (isTouchingGround) {
+        isGoingThroughPlatform = Physics2D.OverlapCircle(groundCheckCollider.position, groundCheckRadius, GTPlatformLayer);
+        if (isTouchingGround || isGoingThroughPlatform) {
             isGrounded = true;
             canDash = true;
         }
@@ -124,7 +129,6 @@ public class PlayerMovement : MonoBehaviour
         } 
 
         if ((Input.GetButtonDown("Jump")) && isGrounded) {
-            Debug.Log(myBody.velocity.x);
             isJumping = true;
             jumpTimeCounter = jumpTime;
             if (myBody.velocity.x > 0 || myBody.velocity.x == 0) {
@@ -192,21 +196,35 @@ public class PlayerMovement : MonoBehaviour
         if (direction == 0) {
 
             if ((Input.GetButton("Left") && Input.GetButton("Up")) && Input.GetButtonDown("Dash") && canDash) {
+                
                 direction = 1;
             } else if (Input.GetButton("Right") && Input.GetButton("Up") && Input.GetButtonDown("Dash") && canDash) {
+                
                 direction = 2;
             } else if (Input.GetButton("Left") && Input.GetButton("Down") && Input.GetButtonDown("Dash") && canDash) {
+                
                 direction = 3;
             } else if (Input.GetButton("Right") && Input.GetButton("Down") && Input.GetButtonDown("Dash") && canDash) {
+                
                 direction = 4;
             } else if (Input.GetButton("Up") && Input.GetButtonDown("Dash") && canDash) {
+                
                 direction = 5;
             } else if (Input.GetButton("Down") && Input.GetButtonDown("Dash") && canDash) {
+                
                 direction = 6;
-            } else if ((Input.GetButton("Left") && Input.GetButtonDown("Dash") && canDash) || (Input.GetButtonDown("Dash") && isGrounded && facingRight == false)) {
+            } else if (Input.GetButtonDown("Dash") && isGrounded && facingRight == false) {
+
                 direction = 7;
-            } else if ((Input.GetButton("Right") && Input.GetButtonDown("Dash") && canDash) || (Input.GetButtonDown("Dash") && isGrounded && facingRight)) {
+            } else if ((Input.GetButtonDown("Dash") && isGrounded && facingRight)) {
+
                 direction = 8;
+            } else if ((Input.GetButton("Left") && Input.GetButtonDown("Dash") && canDash)) {
+                
+                direction = 9;
+            } else if ((Input.GetButton("Right") && Input.GetButtonDown("Dash") && canDash)) {
+                
+                direction = 10;
             }
 
         } else {
@@ -214,18 +232,15 @@ public class PlayerMovement : MonoBehaviour
             //Makes sure the player doesn't dash undefinetely
 
             //First if statement prevents the player from impulsing itself in case it dahes vertically
-            if (dashTime <= 0 && dashIsVertical) {
-                canDash = false;
+            if (dashTime <= 0 && dashIsVertical && bounce.activateTimer == false) {
                 direction = 0;
                 dashTime = starDashTime;
                 myBody.velocity = new Vector2(0 , myBody.velocity.y / 4f);
-            } else if (dashTime <= 0 && facingRight && dashIsVertical == false) {
-                canDash = false;
+            } else if (dashTime <= 0 && facingRight && dashIsVertical == false && bounce.activateTimer == false) {
                 direction = 0;
                 dashTime = starDashTime;
                 myBody.velocity = new Vector2(((myBody.velocity.x / 10) * 0.5f * movementX + (moveForce * movementX)), myBody.velocity.y / 4f);
-            } else if (dashTime <= 0 && facingRight == false && dashIsVertical == false) {
-                canDash = false;
+            } else if (dashTime <= 0 && facingRight == false && dashIsVertical == false && bounce.activateTimer == false) {
                 direction = 0;
                 dashTime = starDashTime;
                 myBody.velocity = new Vector2((-(myBody.velocity.x / 10) * 0.5f * movementX + (moveForce * movementX)), myBody.velocity.y / 4f);
@@ -235,26 +250,42 @@ public class PlayerMovement : MonoBehaviour
                 //Applies the Dash move to the Rigidbody
                 if (direction == 1) {
                     dashIsVertical = false;
+                    canDash = false;
                     myBody.velocity = (Vector2.left * dashSpeed) + (Vector2.up * dashSpeed);
                 } else if (direction == 2) {
                     dashIsVertical = false;
+                    canDash = false;
                     myBody.velocity = (Vector2.right * dashSpeed) + (Vector2.up * dashSpeed);
-                } else if (direction == 3) {
+                } else if (direction == 3 && bounce.activateTimer == false) {
                     dashIsVertical = false;
+                    canDash = false;
                     myBody.velocity = (Vector2.left * dashSpeed) + (Vector2.down * dashSpeed);
-                } else if (direction == 4) {
+                } else if (direction == 4 && bounce.activateTimer == false) {
+                    canDash = false;
                     dashIsVertical = false;
                     myBody.velocity = (Vector2.right * dashSpeed) + (Vector2.down * dashSpeed);
                 } else if (direction == 5) {
+                    canDash = false;
                     dashIsVertical = true;
                     myBody.velocity = Vector2.up * (dashSpeed * 1.5f);
-                } else if (direction == 6) {
+                } else if (direction == 6 && bounce.activateTimer == false) {
+                    canDash = false;
                     dashIsVertical = true;
                     myBody.velocity = Vector2.down * (dashSpeed * 1.5f);
-                } else if (direction == 7) {
+                } else if (direction == 7 && bounce.activateTimer == false) {
+                    canDash = false;
                     dashIsVertical = false;
                     myBody.velocity = Vector2.left * dashSpeed;
-                } else if (direction == 8) {
+                } else if (direction == 8 && bounce.activateTimer == false) {
+                    canDash = false;
+                    dashIsVertical = false;
+                    myBody.velocity = Vector2.right * dashSpeed;
+                } else if (direction == 9) {
+                    canDash = false;
+                    dashIsVertical = false;
+                    myBody.velocity = Vector2.left * dashSpeed;
+                } else if (direction == 10) {
+                    canDash = false;
                     dashIsVertical = false;
                     myBody.velocity = Vector2.right * dashSpeed;
                 }
